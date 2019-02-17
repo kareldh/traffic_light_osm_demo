@@ -3,10 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "axios": "^0.18.0",
     "leaflet": "^1.4.0",
+    "leaflet-ant-path": "^1.2.1",
+    "n3": "^1.0.3",
     "react": "^16.8.2",
     "react-dom": "^16.8.2",
     "react-leaflet": "^2.2.1",
+    "react-leaflet-ant-path": "^1.1.0",
     "react-scripts": "2.1.5"
   },
   "scripts": {
