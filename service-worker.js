@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/3.6.3/workbox-sw.js");
 
 importScripts(
-  "/kareldh/traffic_light_osm_demo/precache-manifest.2cd44965642ea8bc4ec3a8aaf13d067e.js"
+  "/traffic_light_osm_demo/precache-manifest.b98776a57d883b4e58fc803d062ab13e.js"
 );
 
 workbox.clientsClaim();
@@ -28,7 +28,7 @@ self.__precacheManifest = [].concat(self.__precacheManifest || []);
 workbox.precaching.suppressWarnings();
 workbox.precaching.precacheAndRoute(self.__precacheManifest, {});
 
-workbox.routing.registerNavigationRoute("/kareldh/traffic_light_osm_demo/index.html", {
+workbox.routing.registerNavigationRoute("/traffic_light_osm_demo/index.html", {
   
   blacklist: [/^\/_/,/\/[^\/]+\.[^\/]+$/],
 });
