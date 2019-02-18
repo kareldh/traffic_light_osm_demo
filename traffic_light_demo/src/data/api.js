@@ -2,7 +2,7 @@ import axios from 'axios';
 import n3 from 'n3';
 
 const { DataFactory } = n3;
-const { namedNode, literal, defaultGraph, quad } = DataFactory;
+const { namedNode } = DataFactory;
 
 export function download(_uri){
     return new Promise((resolve,reject) => {
@@ -96,31 +96,30 @@ export function getDepartureLanes(_store){
 }
 
 export function getLanesForSignalGroup(_store){ //build index which gives an array of arrival lanes and an array of departure lanes for each signalgroup
-    let signalGroups = [];
-    if(_store){
-        let processedDepartureLanes = [];
-        _store.getQuads(null, namedNode('https://w3id.org/opentrafficlights#departureLane'), null).forEach((quad) => {
-            _store.getQuads(quad.object, namedNode('http://purl.org/dc/terms/description'), null).forEach( (quad) => {
-                if (!processedDepartureLanes.includes(quad.object.value)){
-                    processedDepartureLanes.push(quad.object.value);
+    return new Promise((resolve)=>{
+        let signalGroups = {};
+        if(_store) {
+            _store.getQuads(null, namedNode('http://www.w3.org/2000/01/rdf-schema#type'), namedNode('https://w3id.org/opentrafficlights#Signalgroup')).forEach((signalGroup) => {
+                if(!signalGroups[signalGroup.subject.value]){
+                    signalGroups[signalGroup.subject.value] = {departureLanes: [], arrivalLanes: []};
                 }
 
-                // Load arrival lanes
-                _store.getQuads(null, namedNode('https://w3id.org/opentrafficlights#departureLane'), quad.subject).forEach((connectie) => {
-                    let signalgroup = _store.getQuads(connectie.subject, namedNode('https://w3id.org/opentrafficlights#signalGroup'), null)[0].object.value;
-                    _store.getQuads(connectie.subject, namedNode('https://w3id.org/opentrafficlights#arrivalLane'), null).forEach( (arrivalLane) => {
-                        _store.getQuads(arrivalLane.object, namedNode('http://purl.org/dc/terms/description'), null).forEach( (descr) => {
-                            if(!signalGroups[signalgroup]) signalGroups[signalgroup] = {};
-                            if(!signalGroups[signalgroup].departureLanes) signalGroups[signalgroup].departureLanes = [];
-                            if(!signalGroups[signalgroup].arrivalLanes) signalGroups[signalgroup].arrivalLanes = [];
-                            if(signalGroups[signalgroup].departureLanes.indexOf(quad.subject.value) === -1) signalGroups[signalgroup].departureLanes.push(quad.subject.value);
-                            if(signalGroups[signalgroup].arrivalLanes.indexOf(arrivalLane.object.value) === -1) signalGroups[signalgroup].arrivalLanes.push(arrivalLane.object.value);
-                        });
+                _store.getQuads(null, namedNode('https://w3id.org/opentrafficlights#signalGroup'), signalGroup.subject).forEach((connection) => {
+
+                    //Load departure lanes
+                    _store.getQuads(connection.subject, namedNode('https://w3id.org/opentrafficlights#departureLane'), null).forEach((quad) => {
+                        if(!signalGroups[connection.object.value].departureLanes.includes(quad.object.value)) signalGroups[connection.object.value].departureLanes.push(quad.object.value);
                     });
+
+                    //Load arrival lanes
+                    _store.getQuads(connection.subject, namedNode('https://w3id.org/opentrafficlights#arrivalLane'), null).forEach((quad) => {
+                        if(!signalGroups[connection.object.value].arrivalLanes.includes(quad.object.value)) signalGroups[connection.object.value].arrivalLanes.push(quad.object.value);
+                    });
+
                 });
-            });
-        });
-    }
-    return signalGroups;
+            })
+        }
+        resolve(signalGroups);
+    });
 }
 
