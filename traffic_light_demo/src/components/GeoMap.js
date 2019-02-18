@@ -27,14 +27,14 @@ export default class GeoMap extends React.Component {
             linestrings.departureLanes.forEach(
                 (linestring)=>{
                     let positions = linestringToLatLng(linestring);
-                    antPaths.push(<AntPath positions={positions} options={{color: "blue"}} key={linestring+i}/>);
+                    antPaths.push(<AntPath positions={positions} options={{color: "green", reverse: "true"}} key={linestring+i}/>);
                     i++;
                 }
             );
             linestrings.arrivalLanes.forEach(
                 (linestring)=>{
                     let positions = linestringToLatLng(linestring);
-                    antPaths.push(<AntPath positions={positions} options={{color: "green"}} key={linestring+i}/>);
+                    antPaths.push(<AntPath positions={positions} options={{color: "blue"}} key={linestring+i}/>);
                     i++;
                 }
             );
@@ -43,7 +43,7 @@ export default class GeoMap extends React.Component {
     }
 
     render(){
-        console.log(this.state.linestrings);
+        // console.log(this.state.linestrings);
         const position = [this.lat, this.lng];
         let antPaths = this.getAntPaths();
         return (

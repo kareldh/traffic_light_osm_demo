@@ -11,11 +11,11 @@ export default class GeoMapContainer extends React.Component {
         this.signalgroups = null; //niet gebruikt
         this.laneDefs = null;
         this.departureLanes = null; //niet gebruikt
-        this.stateDefs = null;
+        this.stateDefs = null; //niet meer nodig
         this.lanesForSignalgroups = null;
 
         this.state = {
-            greenStates: null
+            greenLightLineStrings: null
         };
         this.init();
     }
@@ -29,8 +29,15 @@ export default class GeoMapContainer extends React.Component {
                         this.store = store; //niet meer nodig
                         getSignalGroups(store).then(sg => this.signalgroups = sg);  //niet meer nodig
                         this.departureLanes = getDepartureLanes(store); //niet meer nodig
-                        Promise.all([getLaneDefs(store).then(lanes => this.laneDefs = lanes),getStateDefs(store).then(states => this.stateDefs = states),getLanesForSignalGroup(store).then((lanesForGroups)=>{this.lanesForSignalgroups = lanesForGroups})]).then(
-                            ()=> {getGreenStates(store).then(states => this.setState({greenStates: states}));}
+                        let stateDefs = {};
+                        let greenStates = [];
+                        Promise.all([
+                            getLaneDefs(store).then(lanes => this.laneDefs = lanes),
+                            getLanesForSignalGroup(store).then((lanesForGroups)=>{this.lanesForSignalgroups = lanesForGroups}),
+                            getStateDefs(store).then(defs => stateDefs = defs),
+                            getGreenStates(store).then(states => greenStates = states)
+                        ]).then(
+                            ()=> {this.setState({greenLightLineStrings: this.getGreenLightLineStrings(greenStates,stateDefs)})}
                         )
                     });
             }
@@ -51,20 +58,27 @@ export default class GeoMapContainer extends React.Component {
             doc => {
                 parseAndStoreQuads(doc).then(
                     store => {
-                        getGreenStates(store).then(states => this.setState({greenStates: states}));
+                        getStateDefs(store).then(states => {
+                            getGreenStates(store).then(greenStates => this.setState({greenLightLineStrings: this.getGreenLightLineStrings(greenStates,states)}));
+                        });
                     }
                 );
             }
         );
     }
 
-    getGreenLightLineStrings(greenStates){
+    /*
+    Be careful, all arrival lanes are taken together in an array, but not every arrival lane can be reached from every departure lane.
+    We use this function to gather the linestrings that should be drawn and we make no difference in color between which arrival lane belongs to which departure lane.
+    If we would want to be able to display the arrival lanes that can be reached from one selected departure lane, this methods return value and the props given to GeoMap should be revised.
+     */
+    getGreenLightLineStrings(greenStates,stateDefs){
         let greenLightLineStrings = {departureLanes: [], arrivalLanes: []};
         if(greenStates){
             greenStates.forEach(
                 (state) => {
                     // console.log("state",state);
-                    let signalgroup = this.stateDefs[state];
+                    let signalgroup = stateDefs[state];
                     // console.log("signalgroup",signalgroup,"lanesForSignalGroups: ",this.lanesForSignalgroups);
                     // console.log(signalgroup,this.lanesForSignalgroups[signalgroup]);
                     if(this.lanesForSignalgroups[signalgroup]){
@@ -90,8 +104,8 @@ export default class GeoMapContainer extends React.Component {
 
     render(){
         //console.log(this.state);
-        let greenLightLineStrings = this.getGreenLightLineStrings(this.state.greenStates);
-        // console.log(greenLichtLineStrings);
+        let {greenLightLineStrings} = this.state;
+        // console.log(greenLightLineStrings);
         // console.log("doc: ", this.doc);
         // console.log("store: ", this.store);
         // console.log("signalgroups: ", this.signalgroups);
