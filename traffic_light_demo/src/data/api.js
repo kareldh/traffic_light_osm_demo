@@ -25,7 +25,7 @@ export function parseAndStoreQuads(_doc){
     });
 }
 
-export async function getSignalGroups(_store){  //todo: nog eens async en await nakijken
+export async function getSignalGroups(_store){
     let signalgroups = [];
     await _store
         .getQuads(null, namedNode('http://www.w3.org/2000/01/rdf-schema#type'), namedNode('https://w3id.org/opentrafficlights#Signalgroup'))
